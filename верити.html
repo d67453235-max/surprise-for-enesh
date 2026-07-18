@@ -1,0 +1,2138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Сюрприз для Энеш ❤️</title>
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+            background: #0a0a0f;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ===== MAIN APP ===== */
+        #app {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(ellipse at 50% 50%, #12121e, #07070a);
+        }
+
+        /* ===== CANVAS LAYER (particles, fireworks, confetti) ===== */
+        #canvas-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        #canvas-layer.interactive {
+            pointer-events: auto;
+        }
+
+        /* ===== UI OVERLAY ===== */
+        #ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        #ui-overlay>* {
+            pointer-events: auto;
+        }
+
+        /* ===== SCENES ===== */
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1.2s cubic-bezier(0.23, 1, 0.32, 1), visibility 1.2s ease;
+            padding: 20px;
+            text-align: center;
+            pointer-events: none;
+        }
+        .scene.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .scene>* {
+            pointer-events: auto;
+        }
+
+        /* ===== VERITY CHARACTER ===== */
+        .verity {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fff7a0, #f5d742 45%, #d4a820 80%, #b8921a);
+            box-shadow:
+                0 0 40px rgba(245, 215, 66, 0.5),
+                0 0 80px rgba(245, 215, 66, 0.25),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.15),
+                inset 0 8px 30px rgba(255, 255, 200, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.4s ease;
+            flex-shrink: 0;
+            cursor: pointer;
+            will-change: transform;
+        }
+        .verity::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 200, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+        .verity .eyes {
+            position: absolute;
+            top: 38%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .verity .eye {
+            width: 20px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.15s ease;
+        }
+        .verity .eye::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 12px;
+            background: #2d1b00;
+            border-radius: 50%;
+            transition: all 0.15s ease;
+        }
+        .verity .eye.left::after {
+            transform: translateX(-50%) translateX(-2px);
+        }
+        .verity .eye.right::after {
+            transform: translateX(-50%) translateX(2px);
+        }
+        .verity .mouth {
+            position: absolute;
+            bottom: 28%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 26px;
+            height: 12px;
+            border-bottom: 3px solid #7a5a1a;
+            border-radius: 0 0 50% 50%;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        .verity .mouth.happy {
+            height: 16px;
+            border-bottom-width: 4px;
+        }
+        .verity .mouth.open {
+            height: 20px;
+            border-bottom: none;
+            background: #7a5a1a;
+            border-radius: 50%;
+            width: 20px;
+        }
+        .verity .blush {
+            position: absolute;
+            bottom: 30%;
+            width: 18px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 150, 150, 0.35);
+            filter: blur(4px);
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            opacity: 0;
+        }
+        .verity .blush.left {
+            left: 12%;
+        }
+        .verity .blush.right {
+            right: 12%;
+        }
+        .verity .blush.show {
+            opacity: 1;
+        }
+        .verity .sparkle {
+            position: absolute;
+            pointer-events: none;
+            font-size: 20px;
+            animation: sparkleFloat 2s ease-in-out infinite;
+            opacity: 0;
+        }
+        .verity .sparkle.s1 {
+            top: -10px;
+            right: -10px;
+            animation-delay: 0s;
+        }
+        .verity .sparkle.s2 {
+            bottom: -5px;
+            left: -15px;
+            animation-delay: 0.7s;
+            font-size: 14px;
+        }
+        .verity .sparkle.s3 {
+            top: 10px;
+            left: -20px;
+            animation-delay: 1.4s;
+            font-size: 16px;
+        }
+        @keyframes sparkleFloat {
+            0%,
+            100% {
+                opacity: 0;
+                transform: scale(0.5) rotate(0deg);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2) rotate(180deg);
+            }
+        }
+
+        /* Verity sizes */
+        .verity.small {
+            width: 80px;
+            height: 80px;
+        }
+        .verity.small .eye {
+            width: 14px;
+            height: 17px;
+        }
+        .verity.small .eye::after {
+            width: 7px;
+            height: 8px;
+        }
+        .verity.small .mouth {
+            width: 18px;
+            height: 8px;
+        }
+        .verity.small .blush {
+            width: 12px;
+            height: 7px;
+        }
+        .verity.tiny {
+            width: 50px;
+            height: 50px;
+        }
+        .verity.tiny .eye {
+            width: 9px;
+            height: 11px;
+        }
+        .verity.tiny .eye::after {
+            width: 4px;
+            height: 5px;
+        }
+        .verity.tiny .mouth {
+            width: 12px;
+            height: 5px;
+            border-bottom-width: 2px;
+            bottom: 30%;
+        }
+        .verity.tiny .blush {
+            display: none;
+        }
+        .verity.large {
+            width: 160px;
+            height: 160px;
+        }
+        .verity.large .eye {
+            width: 28px;
+            height: 32px;
+        }
+        .verity.large .eye::after {
+            width: 14px;
+            height: 16px;
+        }
+        .verity.large .mouth {
+            width: 34px;
+            height: 16px;
+            border-bottom-width: 4px;
+        }
+        .verity.large .blush {
+            width: 24px;
+            height: 14px;
+        }
+                .verity.bounce {
+            animation: bounce 1.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+        }
+        @keyframes bounce {
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+            20% {
+                transform: translateY(-18px) scale(1.02);
+            }
+            40% {
+                transform: translateY(0) scale(0.98);
+            }
+            55% {
+                transform: translateY(-8px) scale(1.01);
+            }
+            70% {
+                transform: translateY(0) scale(0.99);
+            }
+        }
+        .verity.float {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-12px);
+            }
+        }
+        .verity.wiggle {
+            animation: wiggle 0.6s ease-in-out;
+        }
+        @keyframes wiggle {
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(-12deg);
+            }
+            75% {
+                transform: rotate(12deg);
+            }
+        }
+        .verity.pop {
+            animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* ===== GLOW TEXT ===== */
+        .glow-text {
+            font-size: clamp(2rem, 6vw, 4.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffe87a, #f5d742, #d4a820, #f5d742);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+            filter: drop-shadow(0 0 30px rgba(245, 215, 66, 0.3));
+            animation: shimmerText 4s ease-in-out infinite;
+            letter-spacing: 0.04em;
+        }
+        @keyframes shimmerText {
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .glow-text-white {
+            font-size: clamp(1.8rem, 5vw, 3.8rem);
+            font-weight: 600;
+            color: #fff;
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.15), 0 0 80px rgba(255, 215, 0, 0.1);
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn-primary {
+            padding: 16px 48px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 60px;
+            background: linear-gradient(135deg, #f5d742, #d4a820);
+            color: #1a1a2e;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 0 30px rgba(245, 215, 66, 0.3), 0 4px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.03em;
+            pointer-events: auto;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 50px rgba(245, 215, 66, 0.5), 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+        .btn-primary:hover::after {
+            opacity: 1;
+        }
+        .btn-primary .emoji {
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+        .btn-primary:hover .emoji {
+            transform: scale(1.2) rotate(-5deg);
+        }
+
+        .btn-secondary {
+            padding: 12px 36px;
+            font-size: 1rem;
+            font-weight: 500;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            pointer-events: auto;
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 215, 0, 0.4);
+            box-shadow: 0 0 30px rgba(245, 215, 66, 0.1);
+        }
+
+        /* ===== GLASS CARD ===== */
+        .glass {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 32px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: all 0.5s ease;
+        }
+        .glass:hover {
+            border-color: rgba(255, 215, 0, 0.15);
+        }
+
+        /* ===== TYPING TEXT ===== */
+        .typing-text {
+            font-size: clamp(1.4rem, 3.5vw, 2.6rem);
+            font-weight: 400;
+            color: #f0ece4;
+            line-height: 1.6;
+            min-height: 2em;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+        .typing-text .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.1em;
+            background: #f5d742;
+            animation: blink 0.8s step-end infinite;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+        }
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* ===== SCENE SPECIFIC ===== */
+
+        /* Intro scene */
+        #scene-intro .verity-container {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        #scene-intro .verity-container .glow-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245, 215, 66, 0.15) 0%, transparent 70%);
+            animation: pulseGlow 2.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 1;
+            }
+        }
+        #scene-intro .subtitle {
+            font-size: clamp(0.9rem, 1.8vw, 1.3rem);
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 12px;
+            letter-spacing: 0.2em;
+            font-weight: 300;
+        }
+
+        /* Scene 2 - Verity speaks */
+        #scene-speak .speech-container {
+            max-width: 600px;
+            padding: 20px;
+        }
+        #scene-speak .verity-container {
+            margin-bottom: 24px;
+        }
+
+        /* Mini-game: Catch Verity */
+        #scene-catch {
+            cursor: pointer;
+        }
+        #scene-catch .game-area {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        #scene-catch .game-area .verity {
+            position: absolute;
+            cursor: pointer;
+            transition: none;
+            z-index: 5;
+        }
+        #scene-catch .score {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 12px;
+        }
+        #scene-catch .score span {
+            color: #f5d742;
+            font-weight: 700;
+        }
+        #scene-catch .hint {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 8px;
+        }
+
+        /* Mini-game: Collect Hearts */
+        #scene-hearts .game-area {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 380px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            overflow: hidden;
+            margin: 16px 0;
+        }
+        #scene-hearts .game-area .heart {
+            position: absolute;
+            font-size: 32px;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+            user-select: none;
+            animation: heartFloat 2.5s ease-in-out infinite;
+            z-index: 3;
+            filter: drop-shadow(0 0 12px rgba(255, 80, 120, 0.3));
+        }
+        #scene-hearts .game-area .heart:hover {
+            transform: scale(1.2);
+        }
+        #scene-hearts .game-area .heart.collected {
+            animation: heartCollect 0.5s ease forwards;
+        }
+        @keyframes heartFloat {
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-16px) rotate(8deg);
+            }
+        }
+        @keyframes heartCollect {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0) rotate(180deg) translateY(-80px);
+                opacity: 0;
+            }
+        }
+        #scene-hearts .score {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 12px;
+        }
+        #scene-hearts .score span {
+            color: #ff6b8a;
+            font-weight: 700;
+        }
+
+        /* Mini-game: Find Verity (boxes) */
+        #scene-boxes .game-area {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 16px 0;
+            max-width: 500px;
+        }
+        #scene-boxes .box {
+            width: 120px;
+            height: 130px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
+            border: 2px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            font-size: 2.5rem;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+        #scene-boxes .box:hover {
+            transform: translateY(-4px) scale(1.02);
+            border-color: rgba(255, 215, 0, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+        #scene-boxes .box .box-cover {
+            font-size: 2.8rem;
+            transition: transform 0.3s ease;
+        }
+        #scene-boxes .box.revealed .box-cover {
+            transform: scale(0);
+        }
+        #scene-boxes .box .box-content {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #scene-boxes .box.revealed .box-content {
+            opacity: 1;
+            transform: scale(1);
+        }
+        #scene-boxes .box .box-content .verity.tiny {
+            margin: 0 auto;
+        }
+        #scene-boxes .hint {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 8px;
+        }
+
+        /* Final scene */
+        #scene-final .final-title {
+            font-size: clamp(3rem, 10vw, 7rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffe87a, #f5d742, #ffb347, #f5d742);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 60px rgba(245, 215, 66, 0.3));
+            animation: shimmerText 3s ease-in-out infinite;
+            margin: 16px 0;
+            letter-spacing: 0.06em;
+        }
+        #scene-final .final-sub {
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            color: rgba(255, 255, 255, 0.5);
+            max-width: 500px;
+            line-height: 1.7;
+            margin-top: 8px;
+            font-weight: 300;
+        }
+        #scene-final .verity-container {
+            margin-bottom: 20px;
+        }
+        #scene-final .message-box {
+            max-width: 520px;
+            padding: 24px 32px;
+            margin: 12px 0;
+        }
+        #scene-final .message-box p {
+            font-size: clamp(1rem, 1.6vw, 1.3rem);
+            line-height: 1.8;
+            color: #f0ece4;
+            margin: 6px 0;
+        }
+        #scene-final .message-box p .highlight {
+            color: #f5d742;
+            font-weight: 500;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .glass {
+                padding: 20px 18px;
+                border-radius: 18px;
+            }
+            .btn-primary {
+                padding: 14px 32px;
+                font-size: 1rem;
+            }
+            #scene-boxes .box {
+                width: 90px;
+                height: 100px;
+                font-size: 1.8rem;
+            }
+            #scene-boxes .box .box-cover {
+                font-size: 2rem;
+            }
+            #scene-catch .game-area,
+            #scene-hearts .game-area {
+                height: 300px;
+            }
+            .verity {
+                width: 90px;
+                height: 90px;
+            }
+            .verity.large {
+                width: 120px;
+                height: 120px;
+            }
+            .verity.large .eye {
+                width: 22px;
+                height: 26px;
+            }
+            .verity.large .eye::after {
+                width: 11px;
+                height: 13px;
+            }
+            .verity.large .mouth {
+                width: 28px;
+                height: 14px;
+            }
+            .verity.small {
+                width: 60px;
+                height: 60px;
+            }
+            .verity.small .eye {
+                width: 11px;
+                height: 13px;
+            }
+            .verity.small .eye::after {
+                width: 5px;
+                height: 6px;
+            }
+            .verity.small .mouth {
+                width: 14px;
+                height: 6px;
+            }
+            .verity.tiny {
+                width: 38px;
+                height: 38px;
+            }
+            .verity.tiny .eye {
+                width: 7px;
+                height: 8px;
+            }
+            .verity.tiny .eye::after {
+                width: 3px;
+                height: 4px;
+            }
+            .verity.tiny .mouth {
+                width: 9px;
+                height: 4px;
+                border-bottom-width: 2px;
+            }
+            .typing-text {
+                font-size: 1.1rem;
+            }
+            #scene-final .message-box p {
+                font-size: 0.95rem;
+            }
+            #scene-intro .verity-container .glow-ring {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .verity {
+                width: 70px;
+                height: 70px;
+            }
+            .verity .eye {
+                width: 12px;
+                height: 14px;
+            }
+            .verity .eye::after {
+                width: 6px;
+                height: 7px;
+            }
+            .verity .mouth {
+                width: 16px;
+                height: 8px;
+            }
+            .verity.large {
+                width: 100px;
+                height: 100px;
+            }
+            .verity.large .eye {
+                width: 18px;
+                height: 22px;
+            }
+            .verity.large .eye::after {
+                width: 9px;
+                height: 11px;
+            }
+            .verity.large .mouth {
+                width: 22px;
+                height: 12px;
+            }
+            #scene-boxes .box {
+                width: 70px;
+                height: 80px;
+                font-size: 1.4rem;
+            }
+            #scene-boxes .box .box-cover {
+                font-size: 1.6rem;
+            }
+            #scene-catch .game-area,
+            #scene-hearts .game-area {
+                height: 240px;
+            }
+            .typing-text {
+                font-size: 0.95rem;
+            }
+            .btn-primary {
+                padding: 12px 24px;
+                font-size: 0.9rem;
+            }
+            .glass {
+                padding: 16px 14px;
+            }
+        }
+
+        /* ===== UTILITIES ===== */
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mt-12 {
+            margin-top: 12px;
+        }
+        .mt-16 {
+            margin-top: 16px;
+        }
+        .mt-24 {
+            margin-top: 24px;
+        }
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+        .mb-12 {
+            margin-bottom: 12px;
+        }
+        .mb-16 {
+            margin-bottom: 16px;
+        }
+        .gap-8 {
+            gap: 8px;
+        }
+        .gap-12 {
+            gap: 12px;
+        }
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+        }
+        .relative {
+            position: relative;
+        }
+        .w-full {
+            width: 100%;
+        }
+
+        /* hide scrollbar */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* ===== CONFETTI OVERLAY ===== */
+        #confetti-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 8px;
+            height: 12px;
+            top: -20px;
+            opacity: 0;
+            animation: confettiFall linear forwards;
+        }
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg) scale(0.8);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh) rotate(720deg) scale(0.4);
+                opacity: 0;
+            }
+        }
+
+        /* ===== FIREWORK PARTICLES ===== */
+        .firework-particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: fireworkBurst 1.2s cubic-bezier(0, 0.5, 0.5, 1) forwards;
+        }
+        @keyframes fireworkBurst {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+
+        <!-- CANVAS LAYER for particles -->
+        <canvas id="canvas-layer"></canvas>
+
+        <!-- CONFETTI CONTAINER -->
+        <div id="confetti-container"></div>
+
+        <!-- UI OVERLAY -->
+        <div id="ui-overlay">
+
+            <!-- ===== SCENE 1: INTRO ===== -->
+            <div id="scene-intro" class="scene active">
+                <div class="verity-container">
+                    <div class="glow-ring"></div>
+                    <div class="verity large pop" id="intro-verity">
+                        <div class="eyes">
+                            <div class="eye left"></div>
+                            <div class="eye right"></div>
+                        </div>
+                        <div class="mouth happy"></div>
+                        <div class="blush left show"></div>
+                        <div class="blush right show"></div>
+                        <span class="sparkle s1">✦</span>
+                        <span class="sparkle s2">✦</span>
+                        <span class="sparkle s3">✦</span>
+                    </div>
+                </div>
+                <button class="btn-primary" id="btn-start">
+                    <span class="emoji">✨</span> Начать сюрприз <span class="emoji">❤️</span>
+                </button>
+                <div class="subtitle mt-12">для Энеш</div>
+            </div>
+
+            <!-- ===== SCENE 2: VERITY SPEAKS ===== -->
+            <div id="scene-speak" class="scene">
+                <div class="verity-container mb-16">
+                    <div class="verity large float" id="speak-verity">
+                        <div class="eyes">
+                            <div class="eye left"></div>
+                            <div class="eye right"></div>
+                        </div>
+                        <div class="mouth happy"></div>
+                        <div class="blush left show"></div>
+                        <div class="blush right show"></div>
+                        <span class="sparkle s1">✦</span>
+                        <span class="sparkle s2">✦</span>
+                    </div>
+                </div>
+                <div class="glass speech-container">
+                    <div class="typing-text" id="speech-text">
+                        <span class="cursor"></span>
+                    </div>
+                </div>
+                <button class="btn-secondary mt-24" id="btn-speech-next" style="display:none;">
+                    Дальше →
+                </button>
+            </div>
+
+            <!-- ===== SCENE 3: CATCH VERITY ===== -->
+            <div id="scene-catch" class="scene">
+                <h2 style="font-weight:400;font-size:clamp(1.2rem,2.5vw,1.8rem);color:rgba(255,255,255,0.7);margin-bottom:4px;">
+                    🎯 Поймай меня!
+                </h2>
+                <p style="font-size:0.95rem;color:rgba(255,255,255,0.35);margin-bottom:8px;">
+                    Нажми на Verity, чтобы поймать его
+                </p>
+                <div class="game-area" id="catch-area">
+                    <div class="verity small" id="catch-verity" style="position:absolute;cursor:pointer;">
+                        <div class="eyes">
+                            <div class="eye left"></div>
+                            <div class="eye right"></div>
+                        </div>
+                        <div class="mouth happy"></div>
+                        <div class="blush left show"></div>
+                        <div class="blush right show"></div>
+                    </div>
+                </div>
+                <div class="score">Поймано: <span id="catch-count">0</span> / 6</div>
+                <div class="hint" id="catch-hint">Нажми на жёлтого шарика!</div>
+                <button class="btn-secondary mt-16" id="btn-catch-next" style="display:none;">
+                    Дальше →
+                </button>
+            </div>
+
+            <!-- ===== SCENE 4: COLLECT HEARTS ===== -->
+            <div id="scene-hearts" class="scene">
+                <h2 style="font-weight:400;font-size:clamp(1.2rem,2.5vw,1.8rem);color:rgba(255,255,255,0.7);margin-bottom:4px;">
+                    💖 Собери сердечки
+                </h2>
+                <p style="font-size:0.95rem;color:rgba(255,255,255,0.35);margin-bottom:8px;">
+                    Нажимай на все сердечки, которые видишь
+                </p>
+                <div class="game-area" id="hearts-area"></div>
+                <div class="score">Собрано: <span id="hearts-count">0</span> / 10</div>
+                <button class="btn-secondary mt-16" id="btn-hearts-next" style="display:none;">
+                    Дальше →
+                </button>
+            </div>
+
+            <!-- ===== SCENE 5: FIND VERITY (BOXES) ===== -->
+            <div id="scene-boxes" class="scene">
+                <h2 style="font-weight:400;font-size:clamp(1.2rem,2.5vw,1.8rem);color:rgba(255,255,255,0.7);margin-bottom:4px;">
+                    🎁 Где Verity?
+                </h2>
+                <p style="font-size:0.95rem;color:rgba(255,255,255,0.35);margin-bottom:8px;">
+                    Найди, где спрятался Verity
+                </p>
+                <div class="game-area" id="boxes-area">
+                    <div class="box" data-index="0">
+                        <span class="box-cover">📦</span>
+                        <span class="box-content">❌</span>
+                    </div>
+                    <div class="box" data-index="1">
+                        <span class="box-cover">📦</span>
+                        <span class="box-content">❌</span>
+                    </div>
+                    <div class="box" data-index="2">
+                        <span class="box-cover">📦</span>
+                        <span class="box-content">❌</span>
+                    </div>
+                </div>
+                <div class="hint" id="boxes-hint">Выбери одну коробку...</div>
+                <button class="btn-secondary mt-16" id="btn-boxes-next" style="display:none;">
+                    Дальше →
+                </button>
+            </div>
+
+            <!-- ===== SCENE 6: FINAL ===== -->
+            <div id="scene-final" class="scene">
+                <div class="verity-container mb-12">
+                    <div class="verity large bounce" id="final-verity">
+                        <div class="eyes">
+                            <div class="eye left"></div>
+                            <div class="eye right"></div>
+                        </div>
+                        <div class="mouth happy"></div>
+                        <div class="blush left show"></div>
+                        <div class="blush right show"></div>
+                        <span class="sparkle s1">✦</span>
+                        <span class="sparkle s2">✦</span>
+                        <span class="sparkle s3">✦</span>
+                    </div>
+                </div>
+                <div class="glass message-box">
+                    <p id="final-message-line1" style="font-size:clamp(1.1rem,1.8vw,1.5rem);font-weight:400;color:#f0ece4;">
+                        Энеш...
+                    </p>
+                    <p id="final-message-line2" style="font-size:clamp(0.95rem,1.5vw,1.2rem);color:rgba(255,255,255,0.6);margin-top:6px;">
+                        Этот сюрприз был сделан специально для тебя ❤️
+                    </p>
+                    <p id="final-message-line3" style="font-size:clamp(0.9rem,1.3vw,1.05rem);color:rgba(255,255,255,0.4);margin-top:12px;line-height:1.7;">
+                        Ты замечательный человек.<br />
+                        Пусть у тебя всегда будет повод улыбаться.<br />
+                        Береги свою улыбку.
+                    </p>
+                </div>
+                <div class="final-title mt-16">Энеш ❤️</div>
+                <div class="final-sub">
+                    Этот сюрприз сделал для тебя человек,<br />которому очень хотелось тебя порадовать.
+                </div>
+                <button class="btn-secondary mt-24" id="btn-final-replay" style="font-size:0.9rem;padding:10px 28px;">
+                    🔄 Смотреть ещё раз
+                </button>
+            </div>
+
+        </div><!-- /ui-overlay -->
+    </div><!-- /app -->
+    <script>
+    // ============================================================
+    //  COMPLETE JAVASCRIPT
+    // ============================================================
+
+    (function() {
+        'use strict';
+
+        // ============================================================
+        //  DOM REFS
+        // ============================================================
+        const canvas = document.getElementById('canvas-layer');
+        const ctx = canvas.getContext('2d');
+        const confettiContainer = document.getElementById('confetti-container');
+
+        const scenes = {
+            intro: document.getElementById('scene-intro'),
+            speak: document.getElementById('scene-speak'),
+            catch: document.getElementById('scene-catch'),
+            hearts: document.getElementById('scene-hearts'),
+            boxes: document.getElementById('scene-boxes'),
+            final: document.getElementById('scene-final'),
+        };
+
+        const btnStart = document.getElementById('btn-start');
+        const btnSpeechNext = document.getElementById('btn-speech-next');
+        const btnCatchNext = document.getElementById('btn-catch-next');
+        const btnHeartsNext = document.getElementById('btn-hearts-next');
+        const btnBoxesNext = document.getElementById('btn-boxes-next');
+        const btnFinalReplay = document.getElementById('btn-final-replay');
+
+        const speechText = document.getElementById('speech-text');
+        const catchVerity = document.getElementById('catch-verity');
+        const catchArea = document.getElementById('catch-area');
+        const catchCountEl = document.getElementById('catch-count');
+        const catchHint = document.getElementById('catch-hint');
+        const heartsArea = document.getElementById('hearts-area');
+        const heartsCountEl = document.getElementById('hearts-count');
+        const boxesArea = document.getElementById('boxes-area');
+        const boxesHint = document.getElementById('boxes-hint');
+
+        // ============================================================
+        //  CANVAS SETUP
+        // ============================================================
+        let W, H;
+
+        function resizeCanvas() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // ============================================================
+        //  PARTICLE SYSTEM (background sparkles)
+        // ============================================================
+        let particles = [];
+        const MAX_PARTICLES = 90;
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * W;
+                this.y = Math.random() * H;
+                this.size = Math.random() * 2.5 + 0.8;
+                this.speedX = (Math.random() - 0.5) * 0.25;
+                this.speedY = (Math.random() - 0.5) * 0.25 - 0.08;
+                this.opacity = Math.random() * 0.5 + 0.15;
+                this.pulse = Math.random() * Math.PI * 2;
+                this.pulseSpeed = 0.008 + Math.random() * 0.015;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.pulse += this.pulseSpeed;
+                if (this.x < 0 || this.x > W) this.speedX *= -1;
+                if (this.y < 0 || this.y > H) this.speedY *= -1;
+                if (this.y > H + 20) this.reset();
+            }
+            draw(ctx) {
+                const alpha = this.opacity * (0.7 + 0.3 * Math.sin(this.pulse));
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 240, 180, ${alpha})`;
+                ctx.fill();
+                // glow
+                ctx.shadowColor = 'rgba(255, 215, 66, 0.15)';
+                ctx.shadowBlur = 8;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < MAX_PARTICLES; i++) {
+                particles.push(new Particle());
+            }
+        }
+        initParticles();
+
+        // ============================================================
+        //  ANIMATION LOOP (canvas)
+        // ============================================================
+        let animFrameId = null;
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, W, H);
+            // very subtle background gradient
+            const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+            grad.addColorStop(0, 'rgba(30, 25, 50, 0.0)');
+            grad.addColorStop(1, 'rgba(10, 8, 18, 0.0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            for (const p of particles) {
+                p.update();
+                p.draw(ctx);
+            }
+        }
+
+        function animateParticles() {
+            drawParticles();
+            animFrameId = requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // ============================================================
+        //  SCENE MANAGEMENT
+        // ============================================================
+        let currentScene = 'intro';
+        let sceneHistory = [];
+
+        function switchScene(id, keepHistory = true) {
+            if (keepHistory && currentScene) {
+                sceneHistory.push(currentScene);
+            }
+            // hide all
+            for (const key of Object.keys(scenes)) {
+                scenes[key].classList.remove('active');
+            }
+            // show target
+            const el = scenes[id];
+            if (el) {
+                el.classList.add('active');
+                // trigger any scene-specific setup
+                if (id === 'final') {
+                    launchFinale();
+                }
+            }
+            currentScene = id;
+        }
+
+        // ============================================================
+        //  VERITY EXPRESSIONS
+        // ============================================================
+        function setVerityMood(verityEl, mood) {
+            const mouth = verityEl.querySelector('.mouth');
+            const blush = verityEl.querySelectorAll('.blush');
+            const eyes = verityEl.querySelectorAll('.eye');
+            if (!mouth) return;
+            mouth.className = 'mouth';
+            if (mood === 'happy') {
+                mouth.classList.add('happy');
+                blush.forEach(b => b.classList.add('show'));
+            } else if (mood === 'open') {
+                mouth.classList.add('open');
+                blush.forEach(b => b.classList.add('show'));
+            } else if (mood === 'surprised') {
+                mouth.classList.add('open');
+                blush.forEach(b => b.classList.add('show'));
+                eyes.forEach(e => { e.style.transform = 'scale(1.2)'; });
+            } else if (mood === 'blush') {
+                mouth.classList.add('happy');
+                blush.forEach(b => b.classList.add('show'));
+            } else {
+                mouth.classList.add('happy');
+                blush.forEach(b => b.classList.remove('show'));
+            }
+            // reset eyes after a moment
+            if (mood === 'surprised') {
+                setTimeout(() => {
+                    eyes.forEach(e => { e.style.transform = ''; });
+                }, 500);
+            }
+        }
+
+        // ============================================================
+        //  TYPING EFFECT
+        // ============================================================
+        let typingTimer = null;
+        let typingResolve = null;
+
+        function typeText(element, text, speed = 45) {
+            return new Promise((resolve) => {
+                if (typingTimer) {
+                    clearInterval(typingTimer);
+                    typingTimer = null;
+                }
+                element.innerHTML = '';
+                let index = 0;
+                const cursor = document.createElement('span');
+                cursor.className = 'cursor';
+                element.appendChild(cursor);
+
+                typingTimer = setInterval(() => {
+                    if (index < text.length) {
+                        const char = text[index];
+                        const span = document.createElement('span');
+                        span.textContent = char;
+                        element.insertBefore(span, cursor);
+                        index++;
+                        // scroll to bottom if needed
+                        const parent = element.parentElement;
+                        if (parent) {
+                            parent.scrollTop = parent.scrollHeight;
+                        }
+                    } else {
+                        clearInterval(typingTimer);
+                        typingTimer = null;
+                        // remove cursor after a beat
+                        setTimeout(() => {
+                            const c = element.querySelector('.cursor');
+                            if (c) c.remove();
+                        }, 400);
+                        resolve();
+                    }
+                }, speed);
+            });
+        }
+                    // ============================================================
+            //  CONFETTI
+            // ============================================================
+            function launchConfetti(count = 120, colors = null) {
+                if (!colors) {
+                    colors = ['#f5d742', '#ff6b8a', '#ffb347', '#7ae0ff', '#ff85d4', '#ffe87a', '#ff4d6d', '#a8e6cf'];
+                }
+                const container = document.getElementById('confetti-container');
+                for (let i = 0; i < count; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'confetti-piece';
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const sizeW = 4 + Math.random() * 10;
+                    const sizeH = 6 + Math.random() * 14;
+                    const left = Math.random() * 100;
+                    const delay = Math.random() * 2;
+                    const dur = 2 + Math.random() * 3;
+                    const rot = Math.random() * 720;
+                    el.style.cssText = `
+                            left: ${left}%;
+                            width: ${sizeW}px;
+                            height: ${sizeH}px;
+                            background: ${color};
+                            border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+                            animation-delay: ${delay}s;
+                            animation-duration: ${dur}s;
+                            transform: rotate(${rot}deg);
+                            box-shadow: 0 0 6px rgba(255,255,255,0.1);
+                        `;
+                    container.appendChild(el);
+                    // auto remove after animation
+                    setTimeout(() => {
+                        if (el.parentNode) el.parentNode.removeChild(el);
+                    }, (delay + dur) * 1000 + 200);
+                }
+            }
+
+            // ============================================================
+            //  FIREWORKS
+            // ============================================================
+            function createFirework(x, y) {
+                const container = document.getElementById('confetti-container');
+                const count = 30 + Math.floor(Math.random() * 30);
+                const colors = ['#f5d742', '#ff6b8a', '#ffb347', '#7ae0ff', '#ff85d4', '#ffe87a', '#ff4d6d', '#a8e6cf', '#fff'];
+                for (let i = 0; i < count; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'firework-particle';
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 60 + Math.random() * 150;
+                    const tx = Math.cos(angle) * dist;
+                    const ty = Math.sin(angle) * dist - 30;
+                    const size = 4 + Math.random() * 8;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const dur = 0.8 + Math.random() * 0.6;
+                    const delay = Math.random() * 0.2;
+                    el.style.cssText = `
+                            left: ${x}px;
+                            top: ${y}px;
+                            width: ${size}px;
+                            height: ${size}px;
+                            background: ${color};
+                            --tx: ${tx}px;
+                            --ty: ${ty}px;
+                            animation-duration: ${dur}s;
+                            animation-delay: ${delay}s;
+                            box-shadow: 0 0 12px ${color}44;
+                            border-radius: 50%;
+                        `;
+                    container.appendChild(el);
+                    setTimeout(() => {
+                        if (el.parentNode) el.parentNode.removeChild(el);
+                    }, (dur + delay) * 1000 + 100);
+                }
+            }
+
+            function launchFireworks(count = 5) {
+                for (let i = 0; i < count; i++) {
+                    setTimeout(() => {
+                        const x = 50 + Math.random() * (W - 100);
+                        const y = 30 + Math.random() * (H * 0.5);
+                        createFirework(x, y);
+                    }, i * 400 + Math.random() * 300);
+                }
+            }
+
+            // ============================================================
+            //  FINALE
+            // ============================================================
+            let finaleActive = false;
+
+            function launchFinale() {
+                if (finaleActive) return;
+                finaleActive = true;
+
+                // Verity says final words with typing
+                const line1 = document.getElementById('final-message-line1');
+                const line2 = document.getElementById('final-message-line2');
+                const line3 = document.getElementById('final-message-line3');
+
+                // Start with fireworks and confetti
+                launchFireworks(3);
+                launchConfetti(80);
+
+                // Show lines with delay
+                setTimeout(() => {
+                    line1.style.opacity = '1';
+                    line1.style.transition = 'opacity 0.8s ease';
+                    // small wiggle on verity
+                    const v = document.getElementById('final-verity');
+                    if (v) {
+                        v.classList.remove('bounce');
+                        v.classList.add('wiggle');
+                        setTimeout(() => {
+                            v.classList.remove('wiggle');
+                            v.classList.add('bounce');
+                        }, 700);
+                    }
+                }, 300);
+
+                setTimeout(() => {
+                    line2.style.opacity = '1';
+                    line2.style.transition = 'opacity 0.8s ease';
+                    launchConfetti(50);
+                }, 1200);
+
+                setTimeout(() => {
+                    line3.style.opacity = '1';
+                    line3.style.transition = 'opacity 0.8s ease';
+                    launchFireworks(4);
+                    launchConfetti(100);
+                }, 2400);
+
+                // Big burst at the end
+                setTimeout(() => {
+                    launchFireworks(8);
+                    launchConfetti(150);
+                    // continuous sparkles
+                    let burstInterval = setInterval(() => {
+                        if (currentScene !== 'final') {
+                            clearInterval(burstInterval);
+                            return;
+                        }
+                        launchFireworks(1);
+                        launchConfetti(30);
+                    }, 1200);
+                    // store interval for cleanup
+                    window._finalBurstInterval = burstInterval;
+                }, 4000);
+
+                // extra sparkles
+                setTimeout(() => {
+                    launchFireworks(3);
+                    launchConfetti(60);
+                }, 6000);
+
+                // reset after a while
+                setTimeout(() => {
+                    finaleActive = false;
+                }, 10000);
+            }
+
+            // ============================================================
+            //  SCENE: INTRO
+            // ============================================================
+            btnStart.addEventListener('click', () => {
+                // play a little pop
+                const v = document.getElementById('intro-verity');
+                if (v) {
+                    v.classList.remove('pop');
+                    void v.offsetWidth;
+                    v.classList.add('pop');
+                }
+                // switch to speak scene
+                setTimeout(() => {
+                    switchScene('speak');
+                    startSpeechSequence();
+                }, 400);
+            });
+
+            // ============================================================
+            //  SCENE: SPEAK
+            // ============================================================
+            const speechLines = [
+                'Привет...',
+                'Ты ведь Энеш?',
+                'Я давно хотел тебе кое-что показать...',
+                'Но сначала...',
+                'Пойдём со мной! ✨',
+            ];
+            let speechIndex = 0;
+            let speechInProgress = false;
+
+            async function startSpeechSequence() {
+                speechIndex = 0;
+                btnSpeechNext.style.display = 'none';
+                speechInProgress = true;
+                await showNextSpeechLine();
+                speechInProgress = false;
+            }
+
+            async function showNextSpeechLine() {
+                if (speechIndex >= speechLines.length) {
+                    // all done, proceed to catch game
+                    btnSpeechNext.style.display = 'none';
+                    // Verity does a happy bounce
+                    const v = document.getElementById('speak-verity');
+                    if (v) {
+                        v.classList.add('wiggle');
+                        setTimeout(() => v.classList.remove('wiggle'), 700);
+                    }
+                    setTimeout(() => {
+                        switchScene('catch');
+                        initCatchGame();
+                    }, 600);
+                    return;
+                }
+
+                const line = speechLines[speechIndex];
+                const el = document.getElementById('speech-text');
+                // set Verity mood based on line
+                const v = document.getElementById('speak-verity');
+                if (v) {
+                    if (line.includes('Привет')) {
+                        setVerityMood(v, 'happy');
+                    } else if (line.includes('Энеш')) {
+                        setVerityMood(v, 'surprised');
+                        setTimeout(() => setVerityMood(v, 'happy'), 700);
+                    } else if (line.includes('показать')) {
+                        setVerityMood(v, 'open');
+                        setTimeout(() => setVerityMood(v, 'happy'), 800);
+                    } else if (line.includes('Пойдём')) {
+                        setVerityMood(v, 'happy');
+                        v.classList.add('wiggle');
+                        setTimeout(() => v.classList.remove('wiggle'), 700);
+                    } else {
+                        setVerityMood(v, 'happy');
+                    }
+                }
+
+                await typeText(el, line, 35);
+
+                speechIndex++;
+                if (speechIndex >= speechLines.length) {
+                    btnSpeechNext.textContent = '✨ Поехали!';
+                    btnSpeechNext.style.display = 'inline-block';
+                } else {
+                    btnSpeechNext.textContent = 'Дальше →';
+                    btnSpeechNext.style.display = 'inline-block';
+                }
+            }
+
+            btnSpeechNext.addEventListener('click', () => {
+                if (speechInProgress) return;
+                btnSpeechNext.style.display = 'none';
+                showNextSpeechLine();
+            });
+
+            // ============================================================
+            //  SCENE: CATCH VERITY
+            // ============================================================
+            let catchCount = 0;
+            const CATCH_TARGET = 6;
+            let catchPositions = [];
+            let catchGameActive = false;
+            let catchMoveInterval = null;
+
+            function initCatchGame() {
+                catchCount = 0;
+                catchCountEl.textContent = '0';
+                catchHint.textContent = 'Нажми на жёлтого шарика!';
+                btnCatchNext.style.display = 'none';
+                catchGameActive = true;
+
+                const area = catchArea;
+                const rect = area.getBoundingClientRect();
+                const w = area.clientWidth || 400;
+                const h = area.clientHeight || 300;
+
+                // position verity in center initially
+                const v = catchVerity;
+                v.style.left = (w / 2 - 40) + 'px';
+                v.style.top = (h / 2 - 40) + 'px';
+                v.style.display = 'block';
+                setVerityMood(v, 'happy');
+
+                // start moving
+                if (catchMoveInterval) clearInterval(catchMoveInterval);
+                catchMoveInterval = setInterval(() => {
+                    if (!catchGameActive) return;
+                    if (catchCount >= CATCH_TARGET) return;
+                    const r = area.getBoundingClientRect();
+                    const aw = area.clientWidth || 400;
+                    const ah = area.clientHeight || 300;
+                    const size = 70;
+                    const maxX = aw - size - 10;
+                    const maxY = ah - size - 10;
+                    const x = 10 + Math.random() * maxX;
+                    const y = 10 + Math.random() * maxY;
+                    v.style.left = x + 'px';
+                    v.style.top = y + 'px';
+                    // change expression
+                    const moods = ['happy', 'happy', 'open', 'blush'];
+                    setVerityMood(v, moods[Math.floor(Math.random() * moods.length)]);
+                    // small bounce
+                    v.style.transition = 'left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    setTimeout(() => {
+                        v.style.transition = '';
+                    }, 500);
+                }, 700);
+            }
+
+            // catch click
+            catchVerity.addEventListener('click', (e) => {
+                if (!catchGameActive) return;
+                if (catchCount >= CATCH_TARGET) return;
+                e.stopPropagation();
+
+                catchCount++;
+                catchCountEl.textContent = catchCount;
+
+                // Verity reaction
+                const v = catchVerity;
+                setVerityMood(v, 'surprised');
+                v.style.transform = 'scale(1.3)';
+                setTimeout(() => {
+                    v.style.transform = '';
+                    setVerityMood(v, 'happy');
+                }, 300);
+
+                // sparkle effect
+                const rect = v.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                createFirework(cx, cy);
+
+                // hint
+                const msgs = [
+                    '😊 Ещё!',
+                    '✨ Почти!',
+                    '😄 Давай!',
+                    '🌟 Хорошо!',
+                    '🎉 Отлично!',
+                    '💛 Последний!',
+                ];
+                if (catchCount <= msgs.length) {
+                    catchHint.textContent = msgs[catchCount - 1];
+                }
+
+                if (catchCount >= CATCH_TARGET) {
+                    catchGameActive = false;
+                    if (catchMoveInterval) {
+                        clearInterval(catchMoveInterval);
+                        catchMoveInterval = null;
+                    }
+                    catchHint.textContent = '🎉 Ты поймала меня!';
+                    setVerityMood(v, 'happy');
+                    v.style.animation = 'bounce 0.6s ease 3';
+                    launchConfetti(40);
+                    btnCatchNext.style.display = 'inline-block';
+                }
+            });
+
+            // click on area (miss)
+            catchArea.addEventListener('click', (e) => {
+                if (e.target === catchVerity) return;
+                if (!catchGameActive) return;
+                if (catchCount >= CATCH_TARGET) return;
+                // Verity teases
+                const v = catchVerity;
+                setVerityMood(v, 'open');
+                setTimeout(() => setVerityMood(v, 'happy'), 400);
+                catchHint.textContent = '😝 Не туда! Попробуй ещё!';
+            });
+
+            btnCatchNext.addEventListener('click', () => {
+                if (catchMoveInterval) {
+                    clearInterval(catchMoveInterval);
+                    catchMoveInterval = null;
+                }
+                switchScene('hearts');
+                initHeartsGame();
+            });
+
+            // ============================================================
+            //  SCENE: COLLECT HEARTS
+            // ============================================================
+            let heartsCollected = 0;
+            const HEARTS_TARGET = 10;
+            let heartsGameActive = false;
+            let heartElements = [];
+
+            function initHeartsGame() {
+                heartsCollected = 0;
+                heartsCountEl.textContent = '0';
+                btnHeartsNext.style.display = 'none';
+                heartsGameActive = true;
+                const area = heartsArea;
+                area.innerHTML = '';
+                heartElements = [];
+
+                const w = area.clientWidth || 400;
+                const h = area.clientHeight || 350;
+                const emojis = ['❤️', '💛', '💖', '💗', '💕', '💓', '🧡'];
+
+                for (let i = 0; i < HEARTS_TARGET; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'heart';
+                    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    const size = 28 + Math.random() * 16;
+                    el.style.fontSize = size + 'px';
+                    el.style.left = (10 + Math.random() * (w - 60)) + 'px';
+                    el.style.top = (10 + Math.random() * (h - 60)) + 'px';
+                    el.style.animationDelay = (Math.random() * 2) + 's';
+                    el.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+                    el.dataset.collected = 'false';
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (el.dataset.collected === 'true') return;
+                        if (!heartsGameActive) return;
+                        if (heartsCollected >= HEARTS_TARGET) return;
+                        el.dataset.collected = 'true';
+                        el.classList.add('collected');
+                        heartsCollected++;
+                        heartsCountEl.textContent = heartsCollected;
+                        // sparkle
+                        const r = el.getBoundingClientRect();
+                        createFirework(r.left + r.width / 2, r.top + r.height / 2);
+                        // sound-like effect via animation
+                        if (heartsCollected >= HEARTS_TARGET) {
+                            heartsGameActive = false;
+                            setTimeout(() => {
+                                launchConfetti(50);
+                                btnHeartsNext.style.display = 'inline-block';
+                            }, 400);
+                        }
+                        setTimeout(() => {
+                            if (el.parentNode) el.parentNode.removeChild(el);
+                        }, 500);
+                    });
+                    area.appendChild(el);
+                    heartElements.push(el);
+                }
+
+                // Verity appears as a helper
+                const v = document.createElement('div');
+                v.className = 'verity tiny';
+                v.style.position = 'absolute';
+                v.style.bottom = '10px';
+                v.style.right = '10px';
+                v.style.cursor = 'default';
+                v.style.pointerEvents = 'none';
+                v.style.opacity = '0.6';
+                v.innerHTML = `
+                        <div class="eyes"><div class="eye left"></div><div class="eye right"></div></div>
+                        <div class="mouth happy"></div> class="blush left show"></div>
+                        <div class="blush right show"></div>
+                    `;
+                area.appendChild(v);
+            }
+
+            btnHeartsNext.addEventListener('click', () => {
+                switchScene('boxes');
+                initBoxesGame();
+            });
+
+            // ============================================================
+            //  SCENE: FIND VERITY (BOXES)
+            // ============================================================
+            let boxesRevealed = false;
+            let boxesGameActive = false;
+            let correctBoxIndex = -1;
+
+            function initBoxesGame() {
+                boxesRevealed = false;
+                boxesGameActive = true;
+                btnBoxesNext.style.display = 'none';
+                boxesHint.textContent = 'Выбери одну коробку...';
+
+                const boxes = boxesArea.querySelectorAll('.box');
+                correctBoxIndex = Math.floor(Math.random() * 3);
+
+                boxes.forEach((box, idx) => {
+                    box.classList.remove('revealed');
+                    box.dataset.revealed = 'false';
+                    const cover = box.querySelector('.box-cover');
+                    const content = box.querySelector('.box-content');
+                    cover.style.transform = '';
+                    content.style.opacity = '0';
+                    content.style.transform = 'scale(0)';
+
+                    // Reset content
+                    if (idx === correctBoxIndex) {
+                        content.innerHTML =
+                            `<div class="verity tiny" style="margin:0 auto;pointer-events:none;"><div class="eyes"><div class="eye left"></div><div class="eye right"></div></div><div class="mouth happy"></div><div class="blush left show"></div><div class="blush right show"></div></div>`;
+                    } else {
+                        content.textContent = '❌';
+                    }
+
+                    box.onclick = () => {
+                        if (box.dataset.revealed === 'true') return;
+                        if (!boxesGameActive) return;
+                        box.dataset.revealed = 'true';
+                        box.classList.add('revealed');
+
+                        if (idx === correctBoxIndex) {
+                            // WIN!
+                            boxesGameActive = false;
+                            boxesHint.textContent = '🎉 Нашла! Verity тут!';
+                            launchConfetti(60);
+                            // Verity pops out happy
+                            const content = box.querySelector('.box-content');
+                            const tinyV = content.querySelector('.verity');
+                            if (tinyV) {
+                                tinyV.style.animation = 'pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                                setTimeout(() => {
+                                    tinyV.style.animation = 'bounce 1s ease infinite';
+                                }, 600);
+                            }
+                            btnBoxesNext.style.display = 'inline-block';
+                            // extra sparkles
+                            setTimeout(() => launchConfetti(30), 500);
+                        } else {
+                            // Wrong box
+                            boxesHint.textContent = '😅 Не тут! Попробуй другую коробку.';
+                            // shake the box
+                            box.style.animation = 'shake 0.5s ease';
+                            setTimeout(() => {
+                                box.style.animation = '';
+                            }, 500);
+                            // allow retry - but only if not game over
+                            setTimeout(() => {
+                                if (boxesGameActive) {
+                                    box.dataset.revealed = 'false';
+                                    box.classList.remove('revealed');
+                                }
+                            }, 600);
+                        }
+                    };
+                });
+            }
+
+            // Add shake keyframe dynamically
+            const styleSheet = document.createElement('style');
+            styleSheet.textContent = `
+                    @keyframes shake {
+                        0%, 100% { transform: translateX(0); }
+                        25% { transform: translateX(-10px) rotate(-2deg); }
+                        75% { transform: translateX(10px) rotate(2deg); }
+                    }
+                `;
+            document.head.appendChild(styleSheet);
+
+            btnBoxesNext.addEventListener('click', () => {
+                switchScene('final');
+            });
+
+            // ============================================================
+            //  SCENE: FINAL - handled by launchFinale()
+            // ============================================================
+
+            // ============================================================
+            //  REPLAY
+            // ============================================================
+            btnFinalReplay.addEventListener('click', () => {
+                // reset everything
+                if (window._finalBurstInterval) {
+                    clearInterval(window._finalBurstInterval);
+                    window._finalBurstInterval = null;
+                }
+                finaleActive = false;
+                // reset all scenes
+                switchScene('intro', false);
+                // reset speech
+                speechIndex = 0;
+                const speechEl = document.getElementById('speech-text');
+                speechEl.innerHTML = '<span class="cursor"></span>';
+                btnSpeechNext.style.display = 'none';
+                // reset catch
+                catchCount = 0;
+                catchCountEl.textContent = '0';
+                catchHint.textContent = 'Нажми на жёлтого шарика!';
+                btnCatchNext.style.display = 'none';
+                if (catchMoveInterval) {
+                    clearInterval(catchMoveInterval);
+                    catchMoveInterval = null;
+                }
+                catchGameActive = false;
+                // reset hearts
+                heartsCollected = 0;
+                heartsCountEl.textContent = '0';
+                btnHeartsNext.style.display = 'none';
+                heartsGameActive = false;
+                // reset boxes
+                boxesRevealed = false;
+                boxesGameActive = false;
+                btnBoxesNext.style.display = 'none';
+                // reset final messages
+                document.getElementById('final-message-line1').style.opacity = '0';
+                document.getElementById('final-message-line2').style.opacity = '0';
+                document.getElementById('final-message-line3').style.opacity = '0';
+                // reset particles
+                initParticles();
+                // clear confetti
+                document.getElementById('confetti-container').innerHTML = '';
+                // reset verity in intro
+                const introV = document.getElementById('intro-verity');
+                if (introV) {
+                    introV.classList.remove('pop');
+                    void introV.offsetWidth;
+                    introV.classList.add('pop');
+                }
+                // reset speak verity
+                const speakV = document.getElementById('speak-verity');
+                if (speakV) {
+                    speakV.className = 'verity large float';
+                    speakV.innerHTML = `
+                            <div class="eyes"><div class="eye left"></div><div class="eye right"></div></div>
+                            <div class="mouth happy"></div>
+                            <div class="blush left show"></div>
+                            <div class="blush right show"></div>
+                            <span class="sparkle s1">✦</span>
+                            <span class="sparkle s2">✦</span>
+                        `;
+                }
+                // reset catch verity
+                const catchV = document.getElementById('catch-verity');
+                if (catchV) {
+                    catchV.style.left = '';
+                    catchV.style.top = '';
+                    catchV.style.display = 'block';
+                    catchV.className = 'verity small';
+                    catchV.innerHTML = `
+                            <div class="eyes"><div class="eye left"></div><div class="eye right"></div></div>
+                            <div class="mouth happy"></div>
+                            <div class="blush left show"></div>
+                            <div class="blush right show"></div>
+                        `;
+                }
+                // reset final verity
+                const finalV = document.getElementById('final-verity');
+                if (finalV) {
+                    finalV.className = 'verity large bounce';
+                    finalV.innerHTML = `
+                            <div class="eyes"><div class="eye left"></div><div class="eye right"></div></div>
+                            <div class="mouth happy"></div>
+                            <div class="blush left show"></div>
+                            <div class="blush right show"></div>
+                            <span class="sparkle s1">✦</span>
+                            <span class="sparkle s2">✦</span>
+                            <span class="sparkle s3">✦</span>
+                        `;
+                }
+                // clear hearts area
+                document.getElementById('hearts-area').innerHTML = '';
+                // reset boxes
+                const boxes = document.querySelectorAll('.box');
+                boxes.forEach((box, idx) => {
+                    box.classList.remove('revealed');
+                    box.dataset.revealed = 'false';
+                    const cover = box.querySelector('.box-cover');
+                    const content = box.querySelector('.box-content');
+                    if (cover) cover.style.transform = '';
+                    if (content) {
+                        content.style.opacity = '0';
+                        content.style.transform = 'scale(0)';
+                        if (idx === 0) content.textContent = '❌';
+                        else if (idx === 1) content.textContent = '❌';
+                        else content.textContent = '❌';
+                    }
+                });
+                // reset boxes hint
+                boxesHint.textContent = 'Выбери одну коробку...';
+                // re-init boxes game
+                setTimeout(() => {
+                    initBoxesGame();
+                }, 300);
+                // small confetti to celebrate reset
+                setTimeout(() => launchConfetti(20), 400);
+            });
+
+            // ============================================================
+            //  WINDOW RESIZE HANDLER
+            // ============================================================
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                // reposition particles
+                for (const p of particles) {
+                    if (p.x > W) p.x = W * 0.9;
+                    if (p.y > H) p.y = H * 0.9;
+                }
+            });
+
+            // ============================================================
+            //  KEYBOARD SHORTCUTS (easter egg)
+            // ============================================================
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'f' || e.key === 'F') {
+                    // trigger confetti burst
+                    launchConfetti(80);
+                    launchFireworks(2);
+                }
+                if (e.key === 'v' || e.key === 'V') {
+                    // Verity wave on current scene
+                    const activeScene = document.querySelector('.scene.active');
+                    if (activeScene) {
+                        const v = activeScene.querySelector('.verity');
+                        if (v) {
+                            v.classList.add('wiggle');
+                            setTimeout(() => v.classList.remove('wiggle'), 700);
+                        }
+                    }
+                }
+            });
+
+            // ============================================================
+            //  INIT: start with intro scene active
+            // ============================================================
+            // ensure intro is active
+            for (const key of Object.keys(scenes)) {
+                if (key === 'intro') {
+                    scenes[key].classList.add('active');
+                } else {
+                    scenes[key].classList.remove('active');
+                }
+            }
+            currentScene = 'intro';
+
+            // pre-warm particles
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const p = new Particle();
+                    p.x = Math.random() * W;
+                    p.y = Math.random() * H;
+                    particles.push(p);
+                    if (particles.length > MAX_PARTICLES + 10) {
+                        particles.splice(0, 5);
+                    }
+                }, i * 50);
+            }
+
+            console.log('✨ Сюрприз для Энеш загружен! ✨');
+            console.log('💛 Нажми F для конфетти, V чтобы Verity помахал');
+
+        })();
+    </script>
+</body>
+</html>
+                
